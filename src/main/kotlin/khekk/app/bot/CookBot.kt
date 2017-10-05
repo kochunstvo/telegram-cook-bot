@@ -59,6 +59,10 @@ class CookBot : TelegramLongPollingBot() {
                     sendMsg(message, "$randomRecipe")
                     sendMsg(message, "Если рецепт не подошел - отправь $text еще раз")
                 }
+                "/exit" -> {
+                    sendMsg(message, "Отключаюсь")
+                    System.exit(0)
+                }
             }
         }
     }
