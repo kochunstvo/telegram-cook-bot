@@ -68,7 +68,7 @@ class CookBot : TelegramLongPollingBot() {
         messageToSend.enableMarkdown(true)
         messageToSend.chatId = message.chatId.toString()
         messageToSend.text = text
-        sendMessage(messageToSend)
+        sendApiMethod(messageToSend)
     }
 
     private fun sendSticker(message: Message, sticker: String) {
