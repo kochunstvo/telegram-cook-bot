@@ -16,19 +16,20 @@ class CookBot : TelegramLongPollingBot() {
     private val botToken = "395516945:AAFjXHzlwdWU2SNWbvZPkedSlpw-OmgM1kc"
     private val botUsername = "random_recipe_bot"
 
-    private val recipeList = ArrayList<String>()
-    private var breakfastList = ArrayList<String>()
-    private var lunchList = ArrayList<String>()
-    private var dinnerList = ArrayList<String>()
+    private val recipeList = ArrayList<Recipe>()
 
-    private val cookCite = "https://www.gastronom.ru"
+    private val cookCite = "http://tvoirecepty.ru/"
 
     init {
-        val quickDinnerPage = "/recipe/group/2998/chto-prigotovit-na-uzhin-bystro"
+        val quickDinnerPage = "recepty/na-kazhdy-den"
         val body = Jsoup.connect(cookCite + quickDinnerPage).get().body()
-        val feedRow = body.getElementsByClass("feed").addClass("row").first().children()
-        dinnerList.addAll(feedRow.map { cookCite + it.select("a[href]").first().attr("href") })
-        recipeList.addAll(dinnerList)
+        val foodRow = body.getElementsByClass("recipe").addClass("recipe-teaser")
+        recipeList.addAll(foodRow.map {
+            Recipe(it.attr("data-title").replace("&quot;", ""),
+                    it.attr("data-ingreds").split(";").joinToString(),
+                    it.attr("data-cooktime"),
+                    cookCite + it.attr("data-url"))
+        })
     }
 
     override fun onUpdateReceived(update: Update) {
@@ -38,25 +39,17 @@ class CookBot : TelegramLongPollingBot() {
             when (text) {
                 "/start" -> {
                     sendMsg(message, "Здравствуй, " + message.chat.firstName)
-                    sendMsg(message, "Случайный рецепт - /recipe\n" +
-                            "Случайный рецепт завтрака - /breakfast\n" +
-                            "Случайный рецепт обеда - /lunch\n" +
-                            "Случайный рецепт ужина - /dinner\n")
+                    sendMsg(message, "Случайный рецепт - /recipe")
                 }
-                "/help" -> sendMsg(message, "Случайный рецепт - /recipe\n"
-                        + "Случайный рецепт завтрака - /breakfast\n"
-                        + "Случайный рецепт обеда - /lunch\n"
-                        + "Случайный рецепт ужина - /dinner\n")
+                "/help" -> sendMsg(message, "Случайный рецепт - /recipe")
                 "/recipe" -> {
-                    sendMsg(message, getRandomRecipe(recipeList))
+                    val randomRecipe = getRandomRecipe(recipeList)
+                    sendMsg(message, "${randomRecipe.name}\n" +
+                            "Примерное время приготовления: ${randomRecipe.cookTime} мин.\n" +
+                            "Ингридиенты: ${randomRecipe.ingredients}\n" +
+                            randomRecipe.url)
                     sendMsg(message, "Если рецепт не подошел - отправь $text еще раз")
                 }
-                "/dinner" -> {
-                    sendMsg(message, getRandomRecipe(dinnerList))
-                    sendMsg(message, "Если рецепт не подошел - отправь $text еще раз")
-                }
-                "/lunch", "/breakfast" -> sendMsg(message, "Я пока не знаю ни одного рецепта для этой категории")
-                else -> sendMsg(message, "Я не знаю как на это ответить :c")
             }
         }
     }
@@ -69,8 +62,8 @@ class CookBot : TelegramLongPollingBot() {
         sendMessage(messageToSend)
     }
 
-    private fun getRandomRecipe(recipes: List<String>): String {
-        return recipes[Random().nextInt(recipes.size - 1)]
+    private fun getRandomRecipe(recipeList: List<Recipe>): Recipe {
+        return recipeList[Random().nextInt(recipeList.size)]
     }
 
     override fun getBotToken(): String {
