@@ -26,7 +26,7 @@ class CookBot : TelegramLongPollingBot() {
         val foodRow = body.getElementsByClass("recipe").addClass("recipe-teaser")
         recipeList.addAll(foodRow.map {
             Recipe(it.attr("data-title").replace("&quot;", ""),
-                    it.attr("data-ingreds").split(";").joinToString(),
+                    it.attr("data-ingreds").split(";").joinToString(postfix = "."),
                     it.attr("data-cooktime"),
                     cookCite + it.attr("data-url"))
         })
@@ -44,10 +44,7 @@ class CookBot : TelegramLongPollingBot() {
                 "/help" -> sendMsg(message, "Случайный рецепт - /recipe")
                 "/recipe" -> {
                     val randomRecipe = getRandomRecipe(recipeList)
-                    sendMsg(message, "${randomRecipe.name}\n" +
-                            "Примерное время приготовления: ${randomRecipe.cookTime} мин.\n" +
-                            "Ингридиенты: ${randomRecipe.ingredients}\n" +
-                            randomRecipe.url)
+                    sendMsg(message, "$randomRecipe")
                     sendMsg(message, "Если рецепт не подошел - отправь $text еще раз")
                 }
             }
