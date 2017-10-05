@@ -2,6 +2,7 @@ package khekk.app.bot
 
 import org.jsoup.Jsoup
 import org.telegram.telegrambots.api.methods.send.SendMessage
+import org.telegram.telegrambots.api.methods.send.SendSticker
 import org.telegram.telegrambots.api.objects.Message
 import org.telegram.telegrambots.api.objects.Update
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -20,6 +21,13 @@ class CookBot : TelegramLongPollingBot() {
 
     private val cookCite = "http://tvoirecepty.ru/"
 
+    private val stickers: List<String> = listOf("CAADAgADPgEAAooSqg4ZkiyN7KmJ7AI",
+            "CAADAgADXQEAAooSqg7e1UbQcaOvXgI",
+            "CAADAgADKgEAAooSqg5ZUX2YNQa2xQI",
+            "CAADAgADPwADfeyYB7uSlAvXkEPfAg",
+            "CAADAgADNQADfeyYBzOQm5kjpH5WAg",
+            "CAADAgADWwADfeyYB0o4lPdQPyW-Ag")
+
     init {
         val quickDinnerPage = "recepty/na-kazhdy-den"
         val body = Jsoup.connect(cookCite + quickDinnerPage).get().body()
@@ -36,14 +44,18 @@ class CookBot : TelegramLongPollingBot() {
         val message = update.message
         if (message != null && message.hasText()) {
             val text = message.text
-            when (text) {
+            when (text.toLowerCase()) {
+                "привет", "здравствуй" -> {
+                    sendMsg(message, "Здравствуй, " + message.chat.firstName)
+                    sendSticker(message, getRandom(stickers) as String)
+                }
                 "/start" -> {
                     sendMsg(message, "Здравствуй, " + message.chat.firstName)
-                    sendMsg(message, "Случайный рецепт - /recipe")
+                    sendMsg(message, "Отправь мне /recipe и я покажу тебе случайный рецепт")
                 }
                 "/help" -> sendMsg(message, "Случайный рецепт - /recipe")
                 "/recipe" -> {
-                    val randomRecipe = getRandomRecipe(recipeList)
+                    val randomRecipe = getRandom(recipeList)
                     sendMsg(message, "$randomRecipe")
                     sendMsg(message, "Если рецепт не подошел - отправь $text еще раз")
                 }
@@ -54,13 +66,20 @@ class CookBot : TelegramLongPollingBot() {
     private fun sendMsg(message: Message, text: String) {
         val messageToSend = SendMessage()
         messageToSend.enableMarkdown(true)
-        messageToSend.chatId = message.chatId!!.toString()
+        messageToSend.chatId = message.chatId.toString()
         messageToSend.text = text
         sendMessage(messageToSend)
     }
 
-    private fun getRandomRecipe(recipeList: List<Recipe>): Recipe {
-        return recipeList[Random().nextInt(recipeList.size)]
+    private fun sendSticker(message: Message, sticker: String) {
+        val sendSticker = SendSticker()
+        sendSticker.setChatId(message.chatId)
+        sendSticker.sticker = sticker
+        sendSticker(sendSticker)
+    }
+
+    private fun getRandom(list: List<Any>): Any {
+        return list[Random().nextInt(list.size)]
     }
 
     override fun getBotToken(): String {
