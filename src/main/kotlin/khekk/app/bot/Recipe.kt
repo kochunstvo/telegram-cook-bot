@@ -4,7 +4,7 @@ package khekk.app.bot
  * @author d.khekk
 @since 05.10.2017
  */
-class Recipe(private val name: String,
+data class Recipe(private val name: String,
              private val ingredients: String,
              private val cookTime: String,
              private val url: String) {

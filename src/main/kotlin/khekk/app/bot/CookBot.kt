@@ -6,11 +6,12 @@ import org.telegram.telegrambots.api.methods.send.SendSticker
 import org.telegram.telegrambots.api.objects.Message
 import org.telegram.telegrambots.api.objects.Update
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
+import java.text.SimpleDateFormat
 import java.util.*
 
 /**
  * @author d.khekk
-@since 05.10.2017
+ * @since 05.10.2017
  */
 class CookBot : TelegramLongPollingBot() {
 
@@ -44,22 +45,25 @@ class CookBot : TelegramLongPollingBot() {
         val message = update.message
         if (message != null && message.hasText()) {
             val text = message.text
-            when (text.toLowerCase()) {
-                "привет", "здравствуй" -> {
+            val format = SimpleDateFormat("dd.MM.YY - HH:mm:ss")
+            println("${format.format(Date())} - ${message.chat.firstName} ${message.chat.lastName}: ${message.text}")
+            when {
+                text.toLowerCase().contains("привет") or
+                        text.toLowerCase().contains("здравствуй") -> {
                     sendMsg(message, "Здравствуй, " + message.chat.firstName)
                     sendSticker(message, getRandom(stickers) as String)
                 }
-                "/start" -> {
+                text == "/start" -> {
                     sendMsg(message, "Здравствуй, " + message.chat.firstName)
                     sendMsg(message, "Отправь мне /recipe и я покажу тебе случайный рецепт")
                 }
-                "/help" -> sendMsg(message, "Случайный рецепт - /recipe")
-                "/recipe" -> {
+                text == "/help" -> sendMsg(message, "Случайный рецепт - /recipe")
+                text == "/recipe" -> {
                     val randomRecipe = getRandom(recipeList)
                     sendMsg(message, "$randomRecipe")
                     sendMsg(message, "Если рецепт не подошел - отправь $text еще раз")
                 }
-                "/exit" -> {
+                text == "/exit" -> {
                     sendMsg(message, "Отключаюсь")
                     System.exit(0)
                 }
